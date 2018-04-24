@@ -34,12 +34,12 @@ final class ViewController: UIViewController {
 extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 8
+        return 15
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-        cell.textLabel?.text = "\(indexPath.row)"
+        cell.textLabel?.text = "\(indexPath.row + 1)"
         return cell
     }
 }
