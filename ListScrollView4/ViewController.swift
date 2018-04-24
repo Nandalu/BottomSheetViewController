@@ -34,7 +34,7 @@ final class ViewController: UIViewController {
 extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 15
+        return 30
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -42,4 +42,8 @@ extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollV
         cell.textLabel?.text = "\(indexPath.row + 1)"
         return cell
     }
+
+//    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+//        scrollView.setContentOffset(CGPoint.zero, animated: false)
+//    }
 }

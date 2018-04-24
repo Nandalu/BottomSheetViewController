@@ -105,7 +105,12 @@ final class DrawerView: UIView {
         let newValue = bottomConstraint.constant + 1.5 * translation.y
         var newConstant = newValue
         switch sender.state {
-        case .ended:    // for .ended, translation will be CGPoint.zero
+        case .ended:
+            if drawerViewDidReachBottom {
+                return  // avoid seeing animation of decelerationRate change
+            }
+            // For .ended gesture, translation will be CGPoint.zero
+            // so we need to take the lastTranslation
             let isScrollingDown = lastTranslation.y > 0
             let isScrollingUp = lastTranslation.y < 0
             switch newValue {
@@ -136,9 +141,12 @@ final class DrawerView: UIView {
             default:
                 newConstant = constant(of: .collapsed)
             }
+            tableView.decelerationRate = UIScrollViewDecelerationRateFast
             bottomConstraint.constant = newConstant
-            UIView.animate(withDuration: 0.2) {
+            UIView.animate(withDuration: 0.2, animations: {
                 self.superview?.layoutIfNeeded()
+            }) { (isFinished) in
+                self.tableView.decelerationRate = UIScrollViewDecelerationRateNormal
             }
         default:
             if newValue <= 0 {
