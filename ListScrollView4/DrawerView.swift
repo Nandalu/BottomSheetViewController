@@ -102,7 +102,7 @@ final class DrawerView: UIView {
             tableView.showsVerticalScrollIndicator = true
         }
         // Move the drawerView
-        let newValue = bottomConstraint.constant + 1.5 * translation.y
+        let newValue = bottomConstraint.constant + translation.y
         var newConstant = newValue
         switch sender.state {
         case .ended:
@@ -143,7 +143,7 @@ final class DrawerView: UIView {
             }
             tableView.decelerationRate = UIScrollViewDecelerationRateFast
             bottomConstraint.constant = newConstant
-            UIView.animate(withDuration: 0.2, animations: {
+            UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut, animations: {
                 self.superview?.layoutIfNeeded()
             }) { (isFinished) in
                 self.tableView.decelerationRate = UIScrollViewDecelerationRateNormal
