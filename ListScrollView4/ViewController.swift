@@ -12,7 +12,7 @@ import MapKit
 final class ViewController: UIViewController {
 
     private let mapView = MKMapView()
-    private let drawerView = DrawerView()
+    private let drawerNavigationController = DrawerNavigationController(title: "Title")
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,10 +24,14 @@ final class ViewController: UIViewController {
             NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: ["view": mapView])
         )
 
-        drawerView.show(in: view)
-        drawerView.tableView.dataSource = self
-        drawerView.tableView.delegate = self
-        drawerView.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
+        let tableView = drawerNavigationController.tableView
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
+
+        addChildViewController(drawerNavigationController)
+        drawerNavigationController.show(in: view)
+        drawerNavigationController.didMove(toParentViewController: self)
     }
 }
 
@@ -41,6 +45,14 @@ extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollV
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
         cell.textLabel?.text = "\(indexPath.row + 1)"
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let vc = UIViewController()
+        let cell = tableView.cellForRow(at: indexPath)
+        vc.title = cell?.textLabel?.text
+        vc.view.backgroundColor = .white
+        drawerNavigationController.show(vc, sender: self)
     }
 
 //    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
