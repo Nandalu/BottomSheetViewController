@@ -38,7 +38,7 @@ final class ViewController: UIViewController {
 extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 30
+        return 15
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

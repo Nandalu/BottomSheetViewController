@@ -25,10 +25,12 @@ final class DrawerNavigationController : UINavigationController {
     private var lastTranslation = CGPoint.zero
 
     init(title: String?) {
-        super.init(navigationBarClass: nil, toolbarClass: nil)
+        super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
         drawerViewController.title = title
         viewControllers = [drawerViewController]
-        navigationBar.isTranslucent = false     // fix weird initial offset of tableView
+        if let navigationBar = navigationBar as? NavigationBar {
+            navigationBar.navigationController = self
+        }
     }
 
     private override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -48,9 +50,9 @@ final class DrawerNavigationController : UINavigationController {
         view.translatesAutoresizingMaskIntoConstraints = false
         parentView.addSubview(view)
 
-        let collapsedConstant = height(of: .fullyExpanded) - height(of: .collapsed)
+        let initialConstant = constant(of: .partiallyExpanded)
         let fullHeight = height(of: .fullyExpanded)
-        bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor, constant: collapsedConstant)
+        bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor, constant: initialConstant)
         NSLayoutConstraint.activate(
             NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": view]) +
             [view.heightAnchor.constraint(equalToConstant: fullHeight),
@@ -95,12 +97,13 @@ final class DrawerNavigationController : UINavigationController {
         let translation = sender.translation(in: superview)
         sender.setTranslation(CGPoint.zero, in: superview)
 
-        var scrollViewDidReachTop : Bool {
+        let topOffset = navigationBar.frame.height
+        let scrollViewDidReachTop : Bool = {
             if let scrollView = scrollView {
-                return scrollView.contentOffset.y <= 0
+                return scrollView.contentOffset.y <= -topOffset
             }
             return true
-        }
+        }()
         let drawerViewDidReachBottom = (bottomConstraint.constant == 0)
         let isScrollingDown = translation.y > 0
         let isScrollingUp = translation.y < 0
@@ -113,7 +116,7 @@ final class DrawerNavigationController : UINavigationController {
         }
         if (isScrollingUp && !drawerViewDidReachBottom) ||
             (isScrollingDown && scrollViewDidReachTop) {
-            scrollView?.setContentOffset(CGPoint.zero, animated: false)   // looks like tableView scrolling disabled
+            scrollView?.setContentOffset(CGPoint(x: 0, y: -topOffset), animated: false)   // looks like tableView scrolling disabled
             scrollView?.showsVerticalScrollIndicator = false
         }
         if isScrollingUp && drawerViewDidReachBottom {
@@ -178,12 +181,52 @@ final class DrawerNavigationController : UINavigationController {
     }
 }
 
+extension DrawerNavigationController : UIGestureRecognizerDelegate {
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+}
+
+private final class NavigationBar : UINavigationBar {
+
+    var navigationController : UINavigationController? = nil
+
+    // More ref: https://stackoverflow.com/a/9719364
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        if view is UIControl {  // like UIBarButtonItem, presented as _UIButtonBarButton #available(iOS 11.0) {
+            return view
+        }
+        return navigationController?.topViewController?.view
+    }
+}
+
 private final class DrawerViewController : UIViewController {
 
     let tableView = UITableView()
+    private var isFirstTimeAppear = true
 
     override func loadView() {
         view = tableView
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+//        navigationController?.navigationBar.isUserInteractionEnabled = false    // easiest way to make navigationBar pannable, requiring navigationBar overlays tableView
+
+        // Any of two lines below breaks above code, easiest way to make navigationBar pannable.
+//        navigationController?.navigationBar.isTranslucent = false   // fix weird initial offset of tableView
+//        edgesForExtendedLayout = []     // fix weird initial offset of tableView while keeping translucent navigationBar
+
+        // No need to declare default value
+        // reflect the we've `let topOffset = navigationBar.frame.height`
+//        if #available(iOS 11.0, *) {
+//            tableView.contentInsetAdjustmentBehavior = .always
+//        } else {
+//            automaticallyAdjustsScrollViewInsets = true
+//        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -193,12 +236,12 @@ private final class DrawerViewController : UIViewController {
         if let selectedRow = tableView.indexPathForSelectedRow {
             tableView.deselectRow(at: selectedRow, animated: true)
         }
-    }
-}
 
-extension DrawerNavigationController : UIGestureRecognizerDelegate {
+        // workaround to fix weird initial offset of tableView, on iOS 11 and not started at .fullyExpanded
+        if isFirstTimeAppear, let navBarHeight = navigationController?.navigationBar.frame.height {
+            tableView.setContentOffset(CGPoint(x: 0, y: -navBarHeight), animated: false)
+            isFirstTimeAppear = false
+        }
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
     }
 }
