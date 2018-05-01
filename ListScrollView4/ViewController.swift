@@ -12,7 +12,7 @@ import MapKit
 final class ViewController: UIViewController {
 
     private let mapView = MKMapView()
-    private let drawerNavigationController = DrawerNavigationController(title: "Title")
+    private let drawerNavigationController = DrawerViewController(type: .navigation(title: "Title"))
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,6 +48,9 @@ extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollV
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if drawerNavigationController.isNavigationBarHidden {
+            return
+        }
         let vc = UIViewController()
         let cell = tableView.cellForRow(at: indexPath)
         vc.title = cell?.textLabel?.text

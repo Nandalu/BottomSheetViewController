@@ -12,22 +12,32 @@ enum DrawerViewState {
     case collapsed, partiallyExpanded, fullyExpanded
 }
 
-final class DrawerNavigationController : UINavigationController {
+final class DrawerViewController : UINavigationController {
 
     /// You should set dataSource and delegate
     var tableView : UITableView {
-        return drawerViewController.tableView
+        return rootViewController.tableView
     }
+    let rootViewController = DrawerRootViewController()
     var state : DrawerViewState = .collapsed
 
-    private let drawerViewController = DrawerViewController()
     private var bottomConstraint : NSLayoutConstraint!
     private var lastTranslation = CGPoint.zero
 
-    init(title: String?) {
+    enum DrawerViewControllerType {
+        case plain
+        case navigation(title: String?)
+    }
+
+    init(type: DrawerViewControllerType) {
         super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
-        drawerViewController.title = title
-        viewControllers = [drawerViewController]
+        switch type {
+        case .plain:
+            isNavigationBarHidden = true
+        case .navigation(let title):
+            rootViewController.title = title
+        }
+        viewControllers = [rootViewController]
         if let navigationBar = navigationBar as? NavigationBar {
             navigationBar.navigationController = self
         }
@@ -97,7 +107,7 @@ final class DrawerNavigationController : UINavigationController {
         let translation = sender.translation(in: superview)
         sender.setTranslation(CGPoint.zero, in: superview)
 
-        let topOffset = navigationBar.frame.height
+        let topOffset = isNavigationBarHidden ? 0 : navigationBar.frame.height
         let scrollViewDidReachTop : Bool = {
             if let scrollView = scrollView {
                 return scrollView.contentOffset.y <= -topOffset
@@ -181,7 +191,7 @@ final class DrawerNavigationController : UINavigationController {
     }
 }
 
-extension DrawerNavigationController : UIGestureRecognizerDelegate {
+extension DrawerViewController : UIGestureRecognizerDelegate {
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
@@ -202,7 +212,7 @@ private final class NavigationBar : UINavigationBar {
     }
 }
 
-private final class DrawerViewController : UIViewController {
+final class DrawerRootViewController : UIViewController {
 
     let tableView = UITableView()
     private var isFirstTimeAppear = true
@@ -238,8 +248,9 @@ private final class DrawerViewController : UIViewController {
         }
 
         // workaround to fix weird initial offset of tableView, on iOS 11 and not started at .fullyExpanded
-        if isFirstTimeAppear, let navBarHeight = navigationController?.navigationBar.frame.height {
-            tableView.setContentOffset(CGPoint(x: 0, y: -navBarHeight), animated: false)
+        if isFirstTimeAppear, let nav = navigationController {
+            let topOffset = nav.isNavigationBarHidden ? 0 : nav.navigationBar.frame.height
+            tableView.setContentOffset(CGPoint(x: 0, y: -topOffset), animated: false)
             isFirstTimeAppear = false
         }
 
