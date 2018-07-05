@@ -8,6 +8,11 @@
 
 import UIKit
 
+public enum DrawerViewControllerType {
+    case plain
+    case navigation(title: String?)
+}
+
 public enum DrawerViewState {
     case collapsed, partiallyExpanded, fullyExpanded
 }
@@ -19,7 +24,7 @@ public protocol DrawerViewDelegate {
 
 public final class DrawerViewController : UINavigationController {
 
-    /// You should set dataSource and delegate
+    /// Set dataSource and delegate
     public var tableView : UITableView {
         return rootViewController.tableView
     }
@@ -44,11 +49,6 @@ public final class DrawerViewController : UINavigationController {
 
     private var bottomConstraint : NSLayoutConstraint!
     private var lastTranslation = CGPoint.zero
-
-    public enum DrawerViewControllerType {
-        case plain
-        case navigation(title: String?)
-    }
 
     public init(type: DrawerViewControllerType) {
         super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
@@ -226,9 +226,9 @@ private final class NavigationBar : UINavigationBar {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
         switch type {
-        case .plain, .blur:
+        case .plain:
             return view
-        case .tableView:
+        case .navigation(title: _):
             if view is UIControl {
                 // Ex. UIBarButtonItem, presented as _UIButtonBarButton #available(iOS 11.0) or UINavigationButton on iOS 10
                 return view

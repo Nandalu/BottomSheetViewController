@@ -65,6 +65,10 @@ extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollV
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if drawerNavigationController.isNavigationBarHidden {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
         let vc = UIViewController()
         let cell = tableView.cellForRow(at: indexPath)
         vc.title = cell?.textLabel?.text
