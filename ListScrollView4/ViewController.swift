@@ -7,21 +7,21 @@
 //
 
 import UIKit
-import MapKit
 
 final class ViewController: UIViewController {
 
-    private let mapView = MKMapView()
     private let drawerNavigationController = DrawerViewController(type: .navigation(title: "Title"))
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        mapView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(mapView)
+        let bodyView = UIView()
+        bodyView.backgroundColor = .lightGray
+        bodyView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(bodyView)
         NSLayoutConstraint.activate(
-            NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": mapView]) +
-            NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: ["view": mapView])
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": bodyView]) +
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: ["view": bodyView])
         )
 
         let tableView = drawerNavigationController.tableView

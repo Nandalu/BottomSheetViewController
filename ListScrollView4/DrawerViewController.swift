@@ -205,7 +205,8 @@ private final class NavigationBar : UINavigationBar {
     // More ref: https://stackoverflow.com/a/9719364
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
-        if view is UIControl {  // like UIBarButtonItem, presented as _UIButtonBarButton #available(iOS 11.0) {
+        if view is UIControl {
+            // Ex. UIBarButtonItem, presented as _UIButtonBarButton #available(iOS 11.0) or UINavigationButton on iOS 10
             return view
         }
         return navigationController?.topViewController?.view
