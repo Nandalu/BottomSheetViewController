@@ -8,15 +8,6 @@
 
 import UIKit
 
-public enum DrawerViewControllerType {
-    /// Use rootViewController.view; no navigation bar.
-    case plain
-    /// Use rootViewController.view; no navigation bar.
-    case blur(style: UIBlurEffectStyle)
-    /// Set dataSource and delegate of rootViewController.tableView; with navigation bar.
-    case tableView
-}
-
 public enum DrawerViewState {
     case collapsed, partiallyExpanded, fullyExpanded
 }
@@ -28,6 +19,10 @@ public protocol DrawerViewDelegate {
 
 public final class DrawerViewController : UINavigationController {
 
+    /// You should set dataSource and delegate
+    public var tableView : UITableView {
+        return rootViewController.tableView
+    }
     public let rootViewController = DrawerRootViewController()
 
     public var state : DrawerViewState = .collapsed {
@@ -50,17 +45,21 @@ public final class DrawerViewController : UINavigationController {
     private var bottomConstraint : NSLayoutConstraint!
     private var lastTranslation = CGPoint.zero
 
+    public enum DrawerViewControllerType {
+        case plain
+        case navigation(title: String?)
+    }
+
     public init(type: DrawerViewControllerType) {
         super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
 
         switch type {
-        case .plain, .blur:
+        case .plain:
             isNavigationBarHidden = true
-        case .tableView:
-            isNavigationBarHidden = false
+        case .navigation(let title):
+            rootViewController.title = title
         }
 
-        rootViewController.type = type
         viewControllers = [rootViewController]
         if let navigationBar = navigationBar as? NavigationBar {
             navigationBar.navigationController = self
@@ -241,30 +240,11 @@ private final class NavigationBar : UINavigationBar {
 
 public final class DrawerRootViewController : UIViewController {
 
-    public private(set) lazy var tableView : UITableView? = {
-        switch type {
-        case .plain, .blur:
-            return nil
-        case .tableView:
-            return UITableView()
-        }
-    }()
-    fileprivate var type : DrawerViewControllerType = .plain
+    public let tableView = UITableView()
     private var isFirstTimeAppear = true
 
     override public func loadView() {
-        switch type {
-        case .plain:
-            let view = UIView()
-            view.backgroundColor = .white
-            self.view = view
-        case .blur(style: let style):
-            let effect = UIBlurEffect(style: style)
-            let view = UIVisualEffectView(effect: effect)
-            self.view = view
-        case .tableView:
-            view = tableView
-        }
+        view = tableView
     }
 
     override public func viewDidLoad() {
@@ -289,15 +269,16 @@ public final class DrawerRootViewController : UIViewController {
         super.viewDidAppear(animated)
 
         // like clearsSelectionOnViewWillAppear
-        if let selectedRow = tableView?.indexPathForSelectedRow {
-            tableView?.deselectRow(at: selectedRow, animated: true)
+        if let selectedRow = tableView.indexPathForSelectedRow {
+            tableView.deselectRow(at: selectedRow, animated: true)
         }
 
         // workaround to fix weird initial offset of tableView, on iOS 11 and not started at .fullyExpanded
         if isFirstTimeAppear, let nav = navigationController {
             let topOffset = nav.isNavigationBarHidden ? 0 : nav.navigationBar.frame.height
-            tableView?.setContentOffset(CGPoint(x: 0, y: -topOffset), animated: false)
+            tableView.setContentOffset(CGPoint(x: 0, y: -topOffset), animated: false)
             isFirstTimeAppear = false
         }
+
     }
 }
