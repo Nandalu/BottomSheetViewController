@@ -24,14 +24,31 @@ final class ViewController: UIViewController {
             NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: ["view": bodyView])
         )
 
+//        drawerNavigationController.heightRatios = (1 / 6, 9 / 10, 9 / 10)
+        drawerNavigationController.drawerDelegate = self
+
         let tableView = drawerNavigationController.tableView
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
 
         addChildViewController(drawerNavigationController)
-        drawerNavigationController.show(in: view)
+        drawerNavigationController.show(in: view, initial: .collapsed)
         drawerNavigationController.didMove(toParentViewController: self)
+
+        let item = UIBarButtonItem(title: "Expand", style: .plain, target: self, action: #selector(expand))
+        drawerNavigationController.rootViewController.navigationItem.rightBarButtonItem = item
+    }
+
+    @objc private func expand() {
+        drawerNavigationController.state = .fullyExpanded
+    }
+}
+
+extension ViewController : DrawerViewDelegate {
+
+    func didMove(to percentage: Float) {
+        drawerNavigationController.rootViewController.title = String(format: "didMove to %.1f", percentage)
     }
 }
 

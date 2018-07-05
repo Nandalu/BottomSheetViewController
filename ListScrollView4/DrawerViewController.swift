@@ -2,41 +2,64 @@
 //  DrawerView.swift
 //  ListScrollView4
 //
-//  Created by Mac on 2018/4/24.
+//  Created by denkeni on 2018/4/24.
 //  Copyright © 2018 Nandalu. All rights reserved.
 //
 
 import UIKit
 
-enum DrawerViewState {
+public enum DrawerViewState {
     case collapsed, partiallyExpanded, fullyExpanded
 }
 
-final class DrawerViewController : UINavigationController {
+public protocol DrawerViewDelegate {
+    /// - parameter percentage: 0..1 where collapsed..fullyExpanded
+    func didMove(to percentage: Float)
+}
+
+public final class DrawerViewController : UINavigationController {
 
     /// You should set dataSource and delegate
-    var tableView : UITableView {
+    public var tableView : UITableView {
         return rootViewController.tableView
     }
-    let rootViewController = DrawerRootViewController()
-    var state : DrawerViewState = .collapsed
+    public let rootViewController = DrawerRootViewController()
+
+    public var state : DrawerViewState = .collapsed {
+        didSet {
+            let scrollView = (topViewController?.view as? UIScrollView)
+            scrollView?.decelerationRate = UIScrollViewDecelerationRateFast
+            bottomConstraint.constant = constant(of: state)
+            drawerDelegate?.didMove(to: 1 - Float(constant(of: state) / constant(of: .collapsed)))
+            UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut, animations: {
+                self.view.superview?.layoutIfNeeded()
+            }) { (isFinished) in
+                scrollView?.decelerationRate = UIScrollViewDecelerationRateNormal
+            }
+        }
+    }
+    /// of parentView (collapsed, partiallyExpanded, fullyExpanded)
+    public var heightRatios : (Float, Float, Float) = (1 / 6, 4 / 10, 9 / 10)
+    public var drawerDelegate : DrawerViewDelegate? = nil
 
     private var bottomConstraint : NSLayoutConstraint!
     private var lastTranslation = CGPoint.zero
 
-    enum DrawerViewControllerType {
+    public enum DrawerViewControllerType {
         case plain
         case navigation(title: String?)
     }
 
-    init(type: DrawerViewControllerType) {
+    public init(type: DrawerViewControllerType) {
         super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
+
         switch type {
         case .plain:
             isNavigationBarHidden = true
         case .navigation(let title):
             rootViewController.title = title
         }
+
         viewControllers = [rootViewController]
         if let navigationBar = navigationBar as? NavigationBar {
             navigationBar.navigationController = self
@@ -51,16 +74,16 @@ final class DrawerViewController : UINavigationController {
         super.init(rootViewController: rootViewController)
     }
 
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     // will use auto layout
-    func show(in parentView: UIView) {
+    public func show(in parentView: UIView, initial state: DrawerViewState) {
         view.translatesAutoresizingMaskIntoConstraints = false
         parentView.addSubview(view)
 
-        let initialConstant = constant(of: .partiallyExpanded)
+        let initialConstant = constant(of: state)
         let fullHeight = height(of: .fullyExpanded)
         bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor, constant: initialConstant)
         NSLayoutConstraint.activate(
@@ -70,7 +93,7 @@ final class DrawerViewController : UINavigationController {
         )
     }
 
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
 
         let pan = UIPanGestureRecognizer(target: self, action: #selector(didPan))
@@ -82,11 +105,11 @@ final class DrawerViewController : UINavigationController {
         guard let superview = view.superview else { return 0 }
         switch state {
         case .collapsed:
-            return superview.bounds.height * (1 / 6)
+            return superview.bounds.height * CGFloat(heightRatios.0)
         case .partiallyExpanded:
-            return superview.bounds.height * (4 / 10)
+            return superview.bounds.height * CGFloat(heightRatios.1)
         case .fullyExpanded:
-            return superview.bounds.height * (9 / 10)
+            return superview.bounds.height * CGFloat(heightRatios.2)
         }
     }
 
@@ -172,19 +195,14 @@ final class DrawerViewController : UINavigationController {
             default:
                 state = .collapsed
             }
-            scrollView?.decelerationRate = UIScrollViewDecelerationRateFast
             self.state = state
-            bottomConstraint.constant = constant(of: state)
-            UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut, animations: {
-                self.view.superview?.layoutIfNeeded()
-            }) { (isFinished) in
-                scrollView?.decelerationRate = UIScrollViewDecelerationRateNormal
-            }
         default:
             if newConstant <= 0 {
                 bottomConstraint.constant = 0
+                drawerDelegate?.didMove(to: 1)
             } else {
                 bottomConstraint.constant = newConstant
+                drawerDelegate?.didMove(to: 1 - Float(newConstant / constant(of: .collapsed)))
             }
         }
         lastTranslation = translation
@@ -193,7 +211,7 @@ final class DrawerViewController : UINavigationController {
 
 extension DrawerViewController : UIGestureRecognizerDelegate {
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
 }
@@ -213,16 +231,16 @@ private final class NavigationBar : UINavigationBar {
     }
 }
 
-final class DrawerRootViewController : UIViewController {
+public final class DrawerRootViewController : UIViewController {
 
-    let tableView = UITableView()
+    public let tableView = UITableView()
     private var isFirstTimeAppear = true
 
-    override func loadView() {
+    override public func loadView() {
         view = tableView
     }
 
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
 
 //        navigationController?.navigationBar.isUserInteractionEnabled = false    // easiest way to make navigationBar pannable, requiring navigationBar overlays tableView
@@ -240,7 +258,7 @@ final class DrawerRootViewController : UIViewController {
 //        }
     }
 
-    override func viewDidAppear(_ animated: Bool) {
+    override public func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
         // like clearsSelectionOnViewWillAppear
