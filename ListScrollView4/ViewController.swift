@@ -10,27 +10,34 @@ import UIKit
 
 final class ViewController: UIViewController {
 
-    private let drawerNavigationController = DrawerViewController(type: .navigation(title: "Title"))
+    private let drawerNavigationController = DrawerViewController(type: .tableView)
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let bodyView = UIView()
-        bodyView.backgroundColor = .lightGray
-        bodyView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(bodyView)
+        let topView = UIView()
+        topView.backgroundColor = .lightGray
+        topView.translatesAutoresizingMaskIntoConstraints = false
+        let bottomView = UIView()
+        bottomView.backgroundColor = .purple
+        bottomView.translatesAutoresizingMaskIntoConstraints = false
+        let viewsDict = ["topView": topView, "bottomView": bottomView]
+        view.addSubview(topView)
+        view.addSubview(bottomView)
         NSLayoutConstraint.activate(
-            NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": bodyView]) +
-            NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: ["view": bodyView])
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[topView]|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[bottomView]|", options: [], metrics: nil, views: viewsDict) +
+            NSLayoutConstraint.constraints(withVisualFormat: "V:|[topView][bottomView(==topView)]|", options: [], metrics: nil, views: viewsDict)
         )
 
 //        drawerNavigationController.heightRatios = (1 / 6, 9 / 10, 9 / 10)
         drawerNavigationController.drawerDelegate = self
 
-        let tableView = drawerNavigationController.tableView
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
+        if let tableView = drawerNavigationController.rootViewController.tableView {
+            tableView.dataSource = self
+            tableView.delegate = self
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
+        }
 
         addChildViewController(drawerNavigationController)
         drawerNavigationController.show(in: view, initial: .collapsed)
