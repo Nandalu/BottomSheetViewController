@@ -64,6 +64,7 @@ public final class DrawerViewController : UINavigationController {
         viewControllers = [rootViewController]
         if let navigationBar = navigationBar as? NavigationBar {
             navigationBar.navigationController = self
+            navigationBar.type = type
         }
     }
 
@@ -220,15 +221,21 @@ extension DrawerViewController : UIGestureRecognizerDelegate {
 private final class NavigationBar : UINavigationBar {
 
     var navigationController : UINavigationController? = nil
+    var type : DrawerViewControllerType = .plain
 
     // More ref: https://stackoverflow.com/a/9719364
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
-        if view is UIControl {
-            // Ex. UIBarButtonItem, presented as _UIButtonBarButton #available(iOS 11.0) or UINavigationButton on iOS 10
+        switch type {
+        case .plain, .blur:
             return view
+        case .tableView:
+            if view is UIControl {
+                // Ex. UIBarButtonItem, presented as _UIButtonBarButton #available(iOS 11.0) or UINavigationButton on iOS 10
+                return view
+            }
+            return navigationController?.topViewController?.view
         }
-        return navigationController?.topViewController?.view
     }
 }
 
