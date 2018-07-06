@@ -10,7 +10,13 @@ import UIKit
 
 final class ViewController: UIViewController {
 
-    private let drawerNavigationController = DrawerViewController(type: .navigation(title: "Title"))
+    private let drawerNavigationController : DrawerViewController = {
+        if #available(iOS 11.0, *) {
+            return DrawerViewController(type: .navigation(title: "Title"))
+        } else {
+            return DrawerViewController(type: .plain)
+        }
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()

@@ -10,6 +10,8 @@ import UIKit
 
 public enum DrawerViewControllerType {
     case plain
+
+    @available(iOS 11.0, *)
     case navigation(title: String?)
 }
 
@@ -47,7 +49,12 @@ public final class DrawerViewController : UINavigationController {
     public var heightRatios : (Float, Float, Float) = (1 / 6, 4 / 10, 9 / 10)
     public var drawerDelegate : DrawerViewDelegate? = nil
 
+    private lazy var size : CGSize = {
+        guard let superview = view.superview else { return CGSize.zero }
+        return superview.bounds.size
+    }()
     private var bottomConstraint : NSLayoutConstraint!
+    private var heightConstraint : NSLayoutConstraint!
     private var lastTranslation = CGPoint.zero
 
     public init(type: DrawerViewControllerType) {
@@ -85,12 +92,12 @@ public final class DrawerViewController : UINavigationController {
         parentView.addSubview(view)
 
         let initialConstant = constant(of: state)
-        let fullHeight = height(of: .fullyExpanded)
         bottomConstraint = view.bottomAnchor.constraint(equalTo: parentView.bottomAnchor, constant: initialConstant)
+        let fullHeight = height(of: .fullyExpanded)
+        heightConstraint = view.heightAnchor.constraint(equalToConstant: fullHeight)
         NSLayoutConstraint.activate(
             NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": view]) +
-            [view.heightAnchor.constraint(equalToConstant: fullHeight),
-                 bottomConstraint]
+            [bottomConstraint, heightConstraint]
         )
     }
 
@@ -102,15 +109,14 @@ public final class DrawerViewController : UINavigationController {
         view.addGestureRecognizer(pan)
     }
 
-    private func height(of state: DrawerViewState) -> CGFloat {
-        guard let superview = view.superview else { return 0 }
+    public func height(of state: DrawerViewState) -> CGFloat {
         switch state {
         case .collapsed:
-            return superview.bounds.height * CGFloat(heightRatios.0)
+            return size.height * CGFloat(heightRatios.0)
         case .partiallyExpanded:
-            return superview.bounds.height * CGFloat(heightRatios.1)
+            return size.height * CGFloat(heightRatios.1)
         case .fullyExpanded:
-            return superview.bounds.height * CGFloat(heightRatios.2)
+            return size.height * CGFloat(heightRatios.2)
         }
     }
 
@@ -210,12 +216,25 @@ public final class DrawerViewController : UINavigationController {
     }
 }
 
+extension DrawerViewController {
+
+    override public func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        self.size = size
+        let fullHeight = height(of: .fullyExpanded)
+        heightConstraint.constant = fullHeight
+        let state = self.state
+        self.state = state  // update bottomConstraint
+    }
+}
+
 extension DrawerViewController : UIGestureRecognizerDelegate {
 
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
 }
+
+// MARK: -
 
 private final class NavigationBar : UINavigationBar {
 
@@ -231,6 +250,8 @@ private final class NavigationBar : UINavigationBar {
         case .navigation(title: _):
             if view is UIControl {
                 // Ex. UIBarButtonItem, presented as _UIButtonBarButton #available(iOS 11.0) or UINavigationButton on iOS 10
+                // Known issue: Custom UI elements (on the tableHeaderView) are unresponsive
+                // Known issue: On iOS 10, back button is unresponsive
                 return view
             }
             return navigationController?.topViewController?.view
