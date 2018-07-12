@@ -1,5 +1,5 @@
 //
-//  DrawerView.swift
+//  BottomSheetViewController.swift
 //  ListScrollView4
 //
 //  Created by denkeni on 2018/4/24.
@@ -8,36 +8,36 @@
 
 import UIKit
 
-public enum DrawerViewControllerType {
+public enum BottomSheetViewControllerType {
     case plain
 
     @available(iOS 11.0, *)
     case navigation(title: String?)
 }
 
-public enum DrawerViewState {
+public enum BottomSheetViewState {
     case collapsed, partiallyExpanded, fullyExpanded
 }
 
-public protocol DrawerViewDelegate {
+public protocol BottomSheetViewDelegate {
     /// - parameter percentage: 0..1 where collapsed..fullyExpanded
     func didMove(to percentage: Float)
 }
 
-public final class DrawerViewController : UINavigationController {
+public final class BottomSheetViewController : UINavigationController {
 
     /// Set dataSource and delegate
     public var tableView : UITableView {
         return rootViewController.tableView
     }
-    public let rootViewController = DrawerRootViewController()
+    public let rootViewController = BottomSheetRootViewController()
 
-    public var state : DrawerViewState = .collapsed {
+    public var state : BottomSheetViewState = .collapsed {
         didSet {
             let scrollView = (topViewController?.view as? UIScrollView)
             scrollView?.decelerationRate = UIScrollViewDecelerationRateFast
             bottomConstraint.constant = constant(of: state)
-            drawerDelegate?.didMove(to: 1 - Float(constant(of: state) / constant(of: .collapsed)))
+            bottomSheetDelegate?.didMove(to: 1 - Float(constant(of: state) / constant(of: .collapsed)))
             UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut, animations: {
                 self.view.superview?.layoutIfNeeded()
             }) { (isFinished) in
@@ -45,9 +45,12 @@ public final class DrawerViewController : UINavigationController {
             }
         }
     }
-    /// of parentView (collapsed, partiallyExpanded, fullyExpanded)
-    public var heightRatios : (Float, Float, Float) = (1 / 6, 4 / 10, 9 / 10)
-    public var drawerDelegate : DrawerViewDelegate? = nil
+    /**
+     If <=1.0: ratio of parentView (collapsed, partiallyExpanded, fullyExpanded).
+     If > 1.0: in points
+     */
+    public var heights : (CGFloat, CGFloat, CGFloat) = (1 / 6, 4 / 10, 9 / 10)
+    public var bottomSheetDelegate : BottomSheetViewDelegate? = nil
 
     private lazy var size : CGSize = {
         guard let superview = view.superview else { return CGSize.zero }
@@ -57,7 +60,7 @@ public final class DrawerViewController : UINavigationController {
     private var heightConstraint : NSLayoutConstraint!
     private var lastTranslation = CGPoint.zero
 
-    public init(type: DrawerViewControllerType) {
+    public init(type: BottomSheetViewControllerType) {
         super.init(navigationBarClass: NavigationBar.self, toolbarClass: nil)
 
         switch type {
@@ -87,7 +90,7 @@ public final class DrawerViewController : UINavigationController {
     }
 
     // will use auto layout
-    public func show(in parentView: UIView, initial state: DrawerViewState) {
+    public func show(in parentView: UIView, initial state: BottomSheetViewState) {
         view.translatesAutoresizingMaskIntoConstraints = false
         parentView.addSubview(view)
 
@@ -109,18 +112,24 @@ public final class DrawerViewController : UINavigationController {
         view.addGestureRecognizer(pan)
     }
 
-    public func height(of state: DrawerViewState) -> CGFloat {
+    public func height(of state: BottomSheetViewState) -> CGFloat {
+        let height : CGFloat
         switch state {
         case .collapsed:
-            return size.height * CGFloat(heightRatios.0)
+            height = heights.0
         case .partiallyExpanded:
-            return size.height * CGFloat(heightRatios.1)
+            height = heights.1
         case .fullyExpanded:
-            return size.height * CGFloat(heightRatios.2)
+            height = heights.2
+        }
+        if height > 1.0 {
+            return height
+        } else {
+            return size.height * height // ratio
         }
     }
 
-    private func constant(of state: DrawerViewState) -> CGFloat {
+    private func constant(of state: BottomSheetViewState) -> CGFloat {
         switch state {
         case .collapsed:
             return height(of: .fullyExpanded) - height(of: .collapsed)
@@ -144,7 +153,7 @@ public final class DrawerViewController : UINavigationController {
             }
             return true
         }()
-        let drawerViewDidReachBottom = (bottomConstraint.constant == 0)
+        let bottomSheetDidReachBottom = (bottomConstraint.constant == 0)
         let isScrollingDown = translation.y > 0
         let isScrollingUp = translation.y < 0
 
@@ -154,26 +163,26 @@ public final class DrawerViewController : UINavigationController {
             scrollView?.showsVerticalScrollIndicator = true
             return
         }
-        if (isScrollingUp && !drawerViewDidReachBottom) ||
+        if (isScrollingUp && !bottomSheetDidReachBottom) ||
             (isScrollingDown && scrollViewDidReachTop) {
             scrollView?.setContentOffset(CGPoint(x: 0, y: -topOffset), animated: false)   // looks like tableView scrolling disabled
             scrollView?.showsVerticalScrollIndicator = false
         }
-        if isScrollingUp && drawerViewDidReachBottom {
+        if isScrollingUp && bottomSheetDidReachBottom {
             scrollView?.showsVerticalScrollIndicator = true
         }
-        // Move the drawerView
+        // Move the bottom sheet
         let newConstant = bottomConstraint.constant + translation.y
         switch sender.state {
         case .ended:
-            if drawerViewDidReachBottom {
+            if bottomSheetDidReachBottom {
                 return  // avoid seeing animation of decelerationRate change
             }
             // For .ended gesture, translation will be CGPoint.zero
             // so we need to take the lastTranslation
             let isScrollingDown = lastTranslation.y > 0
             let isScrollingUp = lastTranslation.y < 0
-            let state : DrawerViewState
+            let state : BottomSheetViewState
             switch newConstant {
             case constant(of: .fullyExpanded) ..< constant(of: .partiallyExpanded):
                 if isScrollingUp {
@@ -206,17 +215,17 @@ public final class DrawerViewController : UINavigationController {
         default:
             if newConstant <= 0 {
                 bottomConstraint.constant = 0
-                drawerDelegate?.didMove(to: 1)
+                bottomSheetDelegate?.didMove(to: 1)
             } else {
                 bottomConstraint.constant = newConstant
-                drawerDelegate?.didMove(to: 1 - Float(newConstant / constant(of: .collapsed)))
+                bottomSheetDelegate?.didMove(to: 1 - Float(newConstant / constant(of: .collapsed)))
             }
         }
         lastTranslation = translation
     }
 }
 
-extension DrawerViewController {
+extension BottomSheetViewController {
 
     override public func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         self.size = size
@@ -227,7 +236,7 @@ extension DrawerViewController {
     }
 }
 
-extension DrawerViewController : UIGestureRecognizerDelegate {
+extension BottomSheetViewController : UIGestureRecognizerDelegate {
 
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
@@ -239,7 +248,7 @@ extension DrawerViewController : UIGestureRecognizerDelegate {
 private final class NavigationBar : UINavigationBar {
 
     var navigationController : UINavigationController? = nil
-    var type : DrawerViewControllerType = .plain
+    var type : BottomSheetViewControllerType = .plain
 
     // More ref: https://stackoverflow.com/a/9719364
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -259,7 +268,7 @@ private final class NavigationBar : UINavigationBar {
     }
 }
 
-public final class DrawerRootViewController : UIViewController {
+public final class BottomSheetRootViewController : UIViewController {
 
     public let tableView = UITableView()
     private var isFirstTimeAppear = true

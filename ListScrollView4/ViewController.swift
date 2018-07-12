@@ -10,11 +10,11 @@ import UIKit
 
 final class ViewController: UIViewController {
 
-    private let drawerNavigationController : DrawerViewController = {
+    private let bottomSheetViewController : BottomSheetViewController = {
         if #available(iOS 11.0, *) {
-            return DrawerViewController(type: .navigation(title: "Title"))
+            return BottomSheetViewController(type: .navigation(title: "Title"))
         } else {
-            return DrawerViewController(type: .plain)
+            return BottomSheetViewController(type: .plain)
         }
     }()
 
@@ -30,31 +30,31 @@ final class ViewController: UIViewController {
             NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: ["view": bodyView])
         )
 
-//        drawerNavigationController.heightRatios = (1 / 6, 9 / 10, 9 / 10)
-        drawerNavigationController.drawerDelegate = self
+        bottomSheetViewController.heights = (1 / 6, 9 / 10, 9 / 10)
+        bottomSheetViewController.bottomSheetDelegate = self
 
-        let tableView = drawerNavigationController.tableView
+        let tableView = bottomSheetViewController.tableView
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
 
-        addChildViewController(drawerNavigationController)
-        drawerNavigationController.show(in: view, initial: .collapsed)
-        drawerNavigationController.didMove(toParentViewController: self)
+        addChildViewController(bottomSheetViewController)
+        bottomSheetViewController.show(in: view, initial: .collapsed)
+        bottomSheetViewController.didMove(toParentViewController: self)
 
         let item = UIBarButtonItem(title: "Expand", style: .plain, target: self, action: #selector(expand))
-        drawerNavigationController.rootViewController.navigationItem.rightBarButtonItem = item
+        bottomSheetViewController.rootViewController.navigationItem.rightBarButtonItem = item
     }
 
     @objc private func expand() {
-        drawerNavigationController.state = .fullyExpanded
+        bottomSheetViewController.state = .fullyExpanded
     }
 }
 
-extension ViewController : DrawerViewDelegate {
+extension ViewController : BottomSheetViewDelegate {
 
     func didMove(to percentage: Float) {
-        drawerNavigationController.rootViewController.title = String(format: "didMove to %.1f", percentage)
+        bottomSheetViewController.rootViewController.title = String(format: "didMove to %.1f", percentage)
     }
 }
 
@@ -71,7 +71,7 @@ extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollV
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if drawerNavigationController.isNavigationBarHidden {
+        if bottomSheetViewController.isNavigationBarHidden {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
@@ -79,7 +79,7 @@ extension ViewController : UITableViewDataSource, UITableViewDelegate, UIScrollV
         let cell = tableView.cellForRow(at: indexPath)
         vc.title = cell?.textLabel?.text
         vc.view.backgroundColor = .white
-        drawerNavigationController.show(vc, sender: self)
+        bottomSheetViewController.show(vc, sender: self)
     }
 
 //    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
