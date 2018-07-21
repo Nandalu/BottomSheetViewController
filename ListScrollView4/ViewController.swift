@@ -21,16 +21,10 @@ final class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let bodyView = UIView()
-        bodyView.backgroundColor = .lightGray
-        bodyView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(bodyView)
-        NSLayoutConstraint.activate(
-            NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": bodyView]) +
-            NSLayoutConstraint.constraints(withVisualFormat: "V:|[view]|", options: [], metrics: nil, views: ["view": bodyView])
-        )
+        view.backgroundColor = .lightGray
 
-        bottomSheetViewController.heights = (1 / 6, 9 / 10, 9 / 10)
+        // If you would like to set only 2 height states, uncomment below
+//        bottomSheetViewController.heights = (1 / 6, 9 / 10, 9 / 10)
         bottomSheetViewController.bottomSheetDelegate = self
 
         let tableView = bottomSheetViewController.tableView
@@ -44,6 +38,12 @@ final class ViewController: UIViewController {
 
         let item = UIBarButtonItem(title: "Expand", style: .plain, target: self, action: #selector(expand))
         bottomSheetViewController.rootViewController.navigationItem.rightBarButtonItem = item
+
+        let bottomSheetView = bottomSheetViewController.view
+        bottomSheetView?.layer.shadowColor = UIColor.black.cgColor
+        bottomSheetView?.layer.shadowOffset = CGSize(width: 0, height: 5.0)
+        bottomSheetView?.layer.shadowRadius = 5
+        bottomSheetView?.layer.shadowOpacity = 0.5
     }
 
     @objc private func expand() {
