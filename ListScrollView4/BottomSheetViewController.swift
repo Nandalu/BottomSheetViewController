@@ -20,7 +20,7 @@ public enum BottomSheetViewState {
 }
 
 public protocol BottomSheetViewDelegate {
-    /// - parameter percentage: 0..1 where collapsed..fullyExpanded
+    /// - parameter percentage: 0..1 where collapsed..fullyExpanded. If height of fullyExpanded is set equal to collapsed, it returns ratio of height.
     func didMove(to percentage: Float)
 }
 
@@ -218,7 +218,11 @@ public final class BottomSheetViewController : UINavigationController {
                 bottomSheetDelegate?.didMove(to: 1)
             } else {
                 bottomConstraint.constant = newConstant
-                bottomSheetDelegate?.didMove(to: 1 - Float(newConstant / constant(of: .collapsed)))
+                if constant(of: .collapsed) != 0 {
+                    bottomSheetDelegate?.didMove(to: 1 - Float(newConstant / constant(of: .collapsed)))
+                } else {
+                    bottomSheetDelegate?.didMove(to: -Float(newConstant / height(of: .collapsed)))
+                }
             }
         }
         lastTranslation = translation
