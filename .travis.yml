@@ -1,0 +1,5 @@
+language: objective-c	# Even though this project is in Swift
+xcode_project: BottomSheetViewController.xcodeproj
+xcode_scheme: BottomSheetViewController
+xcode_destination: platform=iOS Simulator,OS=11.4,name=iPhone X
+osx_image: xcode9.4
