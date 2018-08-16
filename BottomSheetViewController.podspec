@@ -20,14 +20,15 @@ Pod::Spec.new do |s|
 #  s.description      = <<-DESC
 #                       DESC
 
-  s.homepage         = 'https://github.com/denkeni/BottomSheetViewController'
+  s.homepage         = 'https://github.com/Nandalu/BottomSheetViewController'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MPL 2', :file => 'LICENSE' }
   s.author           = { 'Denken Chen' => 'denkenie@gmail.com' }
-  s.source           = { :git => 'https://github.com/denkeni/BottomSheetViewController.git', :tag => s.version.to_s, submodules: true }
+  s.source           = { :git => 'https://github.com/Nandalu/BottomSheetViewController.git', :tag => s.version.to_s, submodules: true }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '10.0'
+  s.swift_version = '4.1.2'
 
   s.source_files = 'BottomSheetViewController/**/*.{h,swift}'
 

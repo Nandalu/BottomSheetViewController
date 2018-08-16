@@ -1,6 +1,6 @@
 # BottomSheetViewController
 
-[![CI Status](https://img.shields.io/travis/denkeni/BottomSheetViewController.svg?style=flat)](https://travis-ci.org/denkeni/BottomSheetViewController)
+[![CI Status](https://img.shields.io/travis/Nandalu/BottomSheetViewController.svg?style=flat)](https://travis-ci.org/Nandalu/BottomSheetViewController)
 [![Version](https://img.shields.io/cocoapods/v/BottomSheetViewController.svg?style=flat)](https://cocoapods.org/pods/BottomSheetViewController)
 [![License](https://img.shields.io/cocoapods/l/BottomSheetViewController.svg?style=flat)](https://cocoapods.org/pods/BottomSheetViewController)
 [![Platform](https://img.shields.io/cocoapods/p/BottomSheetViewController.svg?style=flat)](https://cocoapods.org/pods/BottomSheetViewController)
@@ -28,7 +28,7 @@ Run `pod install`.
 #### Cartfile
 
 ```
-github "denkeni/BottomSheetViewController"
+github "Nandalu/BottomSheetViewController"
 ```
 
 Follow instructions on [Carthage](https://github.com/Carthage/Carthage).
@@ -38,7 +38,7 @@ Follow instructions on [Carthage](https://github.com/Carthage/Carthage).
 Add as submodule and clone:
 
 ```
-git submodule add https://github.com/denkeni/BottomSheetViewController
+git submodule add https://github.com/Nandalu/BottomSheetViewController
 ```
 
 Then manually add to your project, as follows:
