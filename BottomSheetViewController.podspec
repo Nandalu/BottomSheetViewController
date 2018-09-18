@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'BottomSheetViewController'
-  s.version          = '1.0'
+  s.version          = '1.1'
   s.summary          = 'Bottom Sheet for iOS App'
 
 # This description is used to generate tags and improve search results.
@@ -28,7 +28,7 @@ Pod::Spec.new do |s|
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '10.0'
-  s.swift_version = '4.1.2'
+  s.swift_version = '4.2'
 
   s.source_files = 'BottomSheetViewController/**/*.{h,swift}'
 

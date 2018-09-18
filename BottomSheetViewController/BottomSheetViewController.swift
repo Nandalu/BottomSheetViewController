@@ -35,13 +35,13 @@ public final class BottomSheetViewController : UINavigationController {
     public var state : BottomSheetViewState = .collapsed {
         didSet {
             let scrollView = (topViewController?.view as? UIScrollView)
-            scrollView?.decelerationRate = UIScrollViewDecelerationRateFast
+            scrollView?.decelerationRate = UIScrollView.DecelerationRate.fast
             bottomConstraint.constant = constant(of: state)
             bottomSheetDelegate?.didMove(to: 1 - Float(constant(of: state) / constant(of: .collapsed)))
             UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseOut, animations: {
                 self.view.superview?.layoutIfNeeded()
             }) { (isFinished) in
-                scrollView?.decelerationRate = UIScrollViewDecelerationRateNormal
+                scrollView?.decelerationRate = UIScrollView.DecelerationRate.normal
             }
         }
     }

@@ -37,9 +37,9 @@ final class ViewController: UIViewController {
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
 
-        addChildViewController(bottomSheetViewController)
+        addChild(bottomSheetViewController)
         bottomSheetViewController.show(in: view, initial: .collapsed)
-        bottomSheetViewController.didMove(toParentViewController: self)
+        bottomSheetViewController.didMove(toParent: self)
 
         let item = UIBarButtonItem(title: "Expand", style: .plain, target: self, action: #selector(expand))
         bottomSheetViewController.rootViewController.navigationItem.rightBarButtonItem = item
