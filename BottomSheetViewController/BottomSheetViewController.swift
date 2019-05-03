@@ -99,7 +99,7 @@ public final class BottomSheetViewController : UINavigationController {
         let fullHeight = height(of: .fullyExpanded)
         heightConstraint = view.heightAnchor.constraint(equalToConstant: fullHeight)
         NSLayoutConstraint.activate(
-            NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": view]) +
+            NSLayoutConstraint.constraints(withVisualFormat: "H:|[view]|", options: [], metrics: nil, views: ["view": view as Any]) +
             [bottomConstraint, heightConstraint]
         )
     }
