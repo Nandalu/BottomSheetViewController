@@ -11,7 +11,7 @@ import UIKit
 public enum BottomSheetViewControllerType {
     case plain
 
-    @available(iOS 11.0, *)
+    /// Important: Only use it for iOS 11 or later!
     case navigation(title: String?)
 }
 
